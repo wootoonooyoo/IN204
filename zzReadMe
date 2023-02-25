@@ -1,0 +1,20 @@
+To-do list
+-----------
+
+1. Currently, after the end of each move, we need to reset the staging grid to the base grid.
+>> How to organise the different grids? (base grid, staging grid, 2nd staging grid (see point 3))
+2. Introduce gravity
+3. Introduce collision detection (might require another staging grid)
+4. Introduce keyboard entries
+5. Check when any line is full and remove it
+
+~~~ At this point, we should have a minimal working tetris game ~~~
+
+6. Add GUI
+7. Improve graphics
+
+~~~ At this point, we should have a working single-player tetris game ~~~
+
+TBC
+
+

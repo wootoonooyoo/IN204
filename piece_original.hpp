@@ -35,7 +35,7 @@ uint8_t piecesColours[NShapes][NColours] = {
 };
 
 
-int pieces[NShapes][NOrientation][Size][Size] =
+int pieceData[NShapes][NOrientation][Size][Size] =
 //signification des accolades : Jaune = tableau global, Violet =  pièce, Bleu=shape 
 
 {
