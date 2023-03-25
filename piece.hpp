@@ -51,11 +51,9 @@ std::tuple <int,int,int,int> pieceColour(int shapeNumber)
         case 7: return {86,159,177,255};
 
         default: return {255,255,255,255};
-
     }
-   
-};
 
+};
 
 
 int pieceData[NShapes][NOrientation][Size][Size] =
