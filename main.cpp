@@ -4,6 +4,7 @@
 #include "grid.cpp"
 #include "piece.hpp"
 #include "window.cpp"
+#include <chrono>
 
 void moveCheckRender(gameGrid stagingGrid, gameWindow w, piece *piece1, std::pair<int, int> boardSize, int x_change = 0, int y_change = 0, bool isRotation = false)
 {
@@ -69,8 +70,10 @@ int rngGenerator(int min = 0, int max = 6)
 
 int main()
 {
+    int score_to_add = 0;
     TTF_Init();
-
+    auto time_last_lvl = std::chrono::system_clock::now();
+    auto time = std::chrono::system_clock::now();
     while (true)
     {
         // Generate
@@ -80,9 +83,9 @@ int main()
         piece piece1(3, 3, 1, 0);
         gameWindow w(100, 100, 900, 900);
         std::pair<int, int> coords{6, 1};
-
-        int gravityInterval = 600; // ms
-        int tickBaseline = 0;      // ms
+        int level = 1;
+        int gravityInterval = 400 + 200 * level; // ms
+        int tickBaseline = 0;                    // ms
         int gravityCount = 0;
         bool lock = false;
 
@@ -145,16 +148,25 @@ int main()
             lock = false;
 
             // check if there are any lines to clear
-            baseGrid.clearLines();
+            score_to_add = baseGrid.clearLines();
             baseGrid.moveAllLinesDown();
+            w.increment_score(score_to_add);
+            score_to_add = 0;
+            w.print_score();
 
             // generate next Shape
             shapeNumber = rngGenerator(0, 6);
             orientationNumber = rngGenerator(0, 3);
             piece1 = piece(shapeNumber, orientationNumber, 3, 0);
         }
-
+        time = std::chrono::system_clock::now();
+        std::chrono::duration<double> lvl_time = time - time_last_lvl;
+        if (lvl_time.count() > 5)
+        {
+            level++;
+        }
         exit(0);
+        std::cout << "level " << level << std::endl;
     }
     TTF_Quit();
 }

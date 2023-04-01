@@ -109,6 +109,8 @@ public:
         }
     }
 
+    void increment_score(int val) { this->score += val; }
+    void print_score() const { std::cout << this->score << std::endl; }
     void renderGrid(int **gridArray, std::pair<int, int> boardSize)
     {
         // determine the size of the grid
