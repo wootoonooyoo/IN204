@@ -134,10 +134,7 @@ int main()
                         default:
                             break;
                     }            
-
                 }
-
-
             } 
         
             // save into baseGrid
@@ -155,10 +152,8 @@ int main()
             piece1 = piece(shapeNumber,orientationNumber,3,0); 
 
         }
-
-
         exit(0);
-
+        
     }
 }
 
