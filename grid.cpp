@@ -58,6 +58,10 @@ public:
         return std::make_pair(gridWidth, gridHeight);
     }
 
+    int boardPadding()
+    {
+        return this->padding;
+    }
     // Update Methods
     void update(int x, int y, int value)
     {
@@ -291,10 +295,9 @@ public:
     }
 
     // Line Clearance
-    int clearLines()
+    void clearLines(int *linesClearedp)
     {
         int count = 0;
-        int linesCleared = 0;
 
         // Check through each line
         for (int j = gridHeight - padding - 1; j >= padding; j--)
@@ -310,22 +313,21 @@ public:
             // hit the top of the all the blocks
             if (count == 0)
             {
-                return 0;
+                return;
             }
 
             // If the line is full, clear it
             if (count == gridWidth - 2 * padding)
             {
+                *linesClearedp = *linesClearedp + 1;
                 for (int i = padding; i < gridWidth - padding; i++)
                 {
                     gridArray[i][j] = 0;
                 }
-                linesCleared++;
             }
 
             count = 0;
         }
-        return linesCleared;
     }
 
     // Move Line Down
