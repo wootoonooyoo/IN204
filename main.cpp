@@ -1,6 +1,7 @@
 #include <iostream>
 #include <array>
 #include <random>
+#include <cstdbool>
 #include "grid.cpp"
 #include "piece.hpp"
 #include "window.cpp"
@@ -70,10 +71,16 @@ int rngGenerator(int min = 0, int max = 6)
 
 int main()
 {
-    int score_to_add = 0;
     TTF_Init();
     auto time_last_lvl = std::chrono::system_clock::now();
     auto time = std::chrono::system_clock::now();
+    std::chrono::duration<double> lvl_duration;
+    std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" << std::endl;
+    std::cout << "@@@@@@@@@@@@@@@@@@@@ Tetris Game @@@@@@@@@@@@@@@@@@@@" << std::endl;
+    std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" << std::endl;
+    std::cout << "Appuyez sur p pour lancer le jeu" << std::endl;
+    std::cout << "Appuyez sur s pour mettre en pause" << std::endl;
+
     while (true)
     {
         // Generate
@@ -83,11 +90,12 @@ int main()
         piece piece1(3, 3, 1, 0);
         gameWindow w(100, 100, 900, 900);
         std::pair<int, int> coords{6, 1};
-        int level = 1;
-        int gravityInterval = 400 + 200 * level; // ms
-        int tickBaseline = 0;                    // ms
+        int level = 0;
+        int gravityInterval = 500; // ms
+        int tickBaseline = 0;      // ms
         int gravityCount = 0;
         bool lock = false;
+        int linescleared = 0;
 
         int shapeNumber = rngGenerator(0, 6);
         int orientationNumber = rngGenerator(0, 3);
@@ -95,19 +103,37 @@ int main()
         moveCheckRender(stagingGrid, w, &piece1, stagingGrid.size());
         tickBaseline = SDL_GetTicks64() - gravityInterval;
 
+        // Play/pause feature
+        bool play = false;
+
         for (int i = 0; i < 100; i++)
         {
 
             while (!lock)
             {
+
                 // Quit the programme
                 if (SDL_PollEvent(&event) && event.type == SDL_QUIT)
                 {
                     exit(0);
                 }
 
+                if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_p)
+                {
+                    if (!play)
+                        std::cout << "Jeu repris, appuyez sur s pour mettre en pause" << std::endl;
+                    play = true;
+                }
+
+                if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_s)
+                {
+                    if (play)
+                        std::cout << "Jeu mis en pause, appuyez sur p pour reprendre" << std::endl;
+                    play = false;
+                }
+
                 // Check gravity
-                if (SDL_GetTicks64() - tickBaseline >= gravityInterval)
+                if (play && (SDL_GetTicks64() - tickBaseline >= gravityInterval))
                 {
                     tickBaseline = SDL_GetTicks64();
                     stagingGrid = baseGrid;
@@ -115,7 +141,7 @@ int main()
                 }
 
                 // Check keyboard input
-                if (event.type == SDL_KEYDOWN)
+                if (play && event.type == SDL_KEYDOWN)
                 {
                     switch (event.key.keysym.sym)
                     {
@@ -140,6 +166,18 @@ int main()
                         break;
                     }
                 }
+                if (level < 15)
+                {
+                    time = std::chrono::system_clock::now();
+                    lvl_duration = time - time_last_lvl;
+                    if (lvl_duration.count() > 15)
+                    {
+                        time_last_lvl = time;
+                        level++;
+                        std::cout << "Niveau " << level << std::endl;
+                        gravityInterval *= 0.85;
+                    }
+                }
             }
 
             // save into baseGrid
@@ -148,25 +186,31 @@ int main()
             lock = false;
 
             // check if there are any lines to clear
-            score_to_add = baseGrid.clearLines();
+            linescleared = baseGrid.clearLines();
             baseGrid.moveAllLinesDown();
-            w.increment_score(score_to_add);
-            score_to_add = 0;
-            w.print_score();
-
+            std::cout << linescleared << std::endl;
+            switch (linescleared)
+            {
+            case 1:
+                std::cout << "1 ligne supprimée !" << std::endl;
+                w.increment_score(40);
+            case 2:
+                std::cout << "2 lignes supprimées !" << std::endl;
+                w.increment_score(100);
+            case 3:
+                std::cout << "3 lignes supprimées !" << std::endl;
+                w.increment_score(300);
+            case 4:
+                std::cout << "4 lignes supprimées ! Tetris :" << std::endl;
+                w.increment_score(1200);
+            }
+            linescleared = 0;
             // generate next Shape
             shapeNumber = rngGenerator(0, 6);
             orientationNumber = rngGenerator(0, 3);
             piece1 = piece(shapeNumber, orientationNumber, 3, 0);
         }
-        time = std::chrono::system_clock::now();
-        std::chrono::duration<double> lvl_time = time - time_last_lvl;
-        if (lvl_time.count() > 5)
-        {
-            level++;
-        }
         exit(0);
-        std::cout << "level " << level << std::endl;
     }
     TTF_Quit();
 }

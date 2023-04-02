@@ -304,6 +304,7 @@ public:
                 if (gridArray[i][j] != 0)
                 {
                     count++;
+                    linesCleared++;
                 }
             }
 
@@ -316,11 +317,11 @@ public:
             // If the line is full, clear it
             if (count == gridWidth - 2 * padding)
             {
+                linesCleared++;
                 for (int i = padding; i < gridWidth - padding; i++)
                 {
                     gridArray[i][j] = 0;
                 }
-                linesCleared++;
             }
 
             count = 0;
