@@ -102,6 +102,15 @@ int main()
         int orientationNumber = rngGenerator(0, 3);
 
         moveCheckRender(stagingGrid, w, &piece1, stagingGrid.size());
+
+        /*
+        // Game over Check
+        if (!movePossible)
+        {
+            std::cout << "Game Over ! Score : " << w.get_score() << std::endl
+                      << "Appuyez sur p pour relancer !" << std::endl;
+            gameOver = true;
+        }*/
         tickBaseline = SDL_GetTicks64() - gravityInterval;
 
         // Play/pause feature
@@ -208,14 +217,6 @@ int main()
                 w.increment_score(1200);
             }
             linescleared = 0;
-
-            // Game Over check
-            if (!baseGrid.checkRowIsZero(20))
-            {
-                std::cout << "Game Over ! Score : " << w.get_score() << std::endl
-                          << "Appuyez sur p pour relancer !" << std::endl;
-                gameOver = true;
-            }
 
             // generate next Shape
             shapeNumber = rngGenerator(0, 6);
