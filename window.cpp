@@ -12,7 +12,7 @@ private:
     SDL_Renderer *renderer;
     SDL_Texture *commitBuffer;
     SDL_Texture *stagingBuffer;
-    TTF_Font *score_font;
+    // TTF_Font *score_font;
 
     SDL_Surface *score_surf;
     SDL_Color score_color;
@@ -33,7 +33,7 @@ public:
         this->commitBuffer = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, width, height);
         this->stagingBuffer = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, width, height);
         this->score_color = {255, 100, 70};
-        this->score_font = TTF_OpenFont("font/OpenSans-ExtraBold.ttf", 10);
+        // this->score_font = TTF_OpenFont("font/OpenSans-ExtraBold.ttf", 10);
         this->width = width;
         this->height = height;
         this->squareSize = 30;
@@ -53,15 +53,20 @@ public:
         drawRectangle(0, 0, this->width, this->height, std::make_tuple(0, 0, 0, 255));
     }
 
-    void drawLine(int x1, int y1, int x2, int y2)
+    void drawLine(int x1, int y1, int x2, int y2, std::tuple<int,int,int,int> colour = std::make_tuple(0, 0, 0, 255))
     {
         // Set the colour of the line
-        SDL_SetRenderDrawColor(this->renderer, 0, 0, 0, 255);
+        SDL_SetRenderDrawColor(this->renderer, std::get<0>(colour), std::get<1>(colour), std::get<2>(colour), std::get<3>(colour));
 
         // Draw a line
         SDL_SetRenderTarget(renderer, this->stagingBuffer);
         SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
         SDL_SetRenderTarget(renderer, NULL);
+    }
+
+    void drawLine(int x1, int y1, int x2, int y2, int r, int g, int b, int a = 255)
+    {
+        drawLine(x1,y1,x2,y2,std::make_tuple(r, g, b, a));
     }
 
     void drawRectangle(int x_pos, int y_pos, int rec_width, int rec_height, std::tuple<int, int, int, int> colour = std::make_tuple(100, 100, 100, 255))
@@ -82,6 +87,11 @@ public:
         SDL_RenderDrawRect(renderer, &incomingPieceRect);
         SDL_RenderFillRect(renderer, &incomingPieceRect);
         SDL_SetRenderTarget(renderer, NULL);
+    }
+
+    void drawRectangle(int x_pos, int y_pos, int rec_width, int rec_height, int r, int g, int b, int a = 255)
+    {
+        drawRectangle(x_pos, y_pos, rec_width, rec_height, std::make_tuple(r, g, b, a));
     }
 
     friend class gameWindow;
@@ -107,7 +117,17 @@ public:
         {
             drawLine(0, i * 30, boardSize.first * 30, i * 30);
         }
+        renderQueue();
     }
+
+    void renderQueue()
+    {
+        drawLine(600,0,600,900,100,100,100,255);
+        
+
+        drawRectangle(650,100, 100, 100, 100, 100, 100, 255);
+    }
+
 
     void increment_score(int val) { this->score += val; }
     void print_score() const { std::cout << this->score << std::endl; }
@@ -133,11 +153,13 @@ public:
             }
         }
     }
-    void renderScore()
-    {
-        score_surf = TTF_RenderUTF8_Blended(score_font, "Score : " + char(score), score_color);
-        score_texture = SDL_CreateTextureFromSurface(renderer, score_surf);
-        score_loc = {100, 100, 500, 500};
-        SDL_RenderCopy(renderer, score_texture, &score_loc, &score_loc);
-    }
+    // void renderScore()
+    // {
+    //     score_surf = TTF_RenderUTF8_Blended(score_font, "Score : " + char(score), score_color);
+    //     score_texture = SDL_CreateTextureFromSurface(renderer, score_surf);
+    //     score_loc = {100, 100, 500, 500};
+    //     SDL_RenderCopy(renderer, score_texture, &score_loc, &score_loc);
+    // }
+
+   
 };
