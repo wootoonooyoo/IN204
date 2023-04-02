@@ -4,15 +4,21 @@
 #include "grid.cpp"
 #include "piece.hpp"
 #include "window.cpp"
+#include "queue.cpp"
 #include <chrono>
 
-void moveCheckRender(gameGrid stagingGrid, gameWindow w, piece *piece1, std::pair<int, int> boardSize, int x_change = 0, int y_change = 0, bool isRotation = false)
+bool moveCheckRender(gameGrid stagingGrid, gameGrid *baseGrid, gameWindow w, piece *piece1, std::pair<int, int> boardSize, int x_change = 0, int y_change = 0, bool isRotation = false, bool isGravityTriggered = false)
 {
     // Move
     piece1->move(x_change, y_change);
 
     // Check
-    if (!stagingGrid.checkMoveValidity(*piece1))
+    if(isGravityTriggered && !stagingGrid.checkMoveValidity(*piece1))
+    {
+        // Lock
+        return true;
+    }
+    else if (!isGravityTriggered && !stagingGrid.checkMoveValidity(*piece1))
     {
         if (isRotation)
         {
@@ -22,7 +28,7 @@ void moveCheckRender(gameGrid stagingGrid, gameWindow w, piece *piece1, std::pai
         {
             piece1->revert();
         }
-        return;
+        return false;
     }
 
     // Render
@@ -30,29 +36,7 @@ void moveCheckRender(gameGrid stagingGrid, gameWindow w, piece *piece1, std::pai
     w.renderGrid(stagingGrid.array(), boardSize); // base layer which contains the wall and pieces
     w.drawGrid(stagingGrid.size());               // grid for aesthetic reasons
     w.render();                                   // render the window
-    // Prepare next iteration
-    stagingGrid.resetGrid();
-    w.clearStagingBuffer();
-}
-
-bool moveCheckLockRender(gameGrid stagingGrid, gameGrid *baseGrid, gameWindow w, piece *piece1, std::pair<int, int> boardSize, int x_change = 0, int y_change = 0)
-{
-    // Move
-    piece1->move(x_change, y_change);
-
-    // Check
-    if (!stagingGrid.checkMoveValidity(*piece1))
-    {
-        // Lock
-        return true;
-    }
-
-    // Render
-    stagingGrid.updateWithPiece(*piece1);
-    w.renderGrid(stagingGrid.array(), boardSize); // base layer which contains the wall and pieces
-    w.drawGrid(stagingGrid.size());               // grid for aesthetic reasons
-    w.render();                                   // render the window
-    w.renderScore();
+    
     // Prepare next iteration
     stagingGrid.resetGrid();
     w.clearStagingBuffer();
@@ -60,18 +44,12 @@ bool moveCheckLockRender(gameGrid stagingGrid, gameGrid *baseGrid, gameWindow w,
     return false;
 }
 
-int rngGenerator(int min = 0, int max = 6)
-{
-    std::random_device rd;
-    std::mt19937 rng(rd());
-    std::uniform_int_distribution<int> uni(min, max);
-    return uni(rng);
-}
+
 
 int main()
 {
     int score_to_add = 0;
-    TTF_Init();
+    // TTF_Init();
     auto time_last_lvl = std::chrono::system_clock::now();
     auto time = std::chrono::system_clock::now();
     while (true)
@@ -82,22 +60,31 @@ int main()
         gameGrid baseGrid(10, 20, 4);
         piece piece1(3, 3, 1, 0);
         gameWindow w(100, 100, 900, 900);
-        std::pair<int, int> coords{6, 1};
+        std::pair<int, int> coords{6, 0};
         int level = 1;
-        int gravityInterval = 400 + 200 * level; // ms
+        int gravityInterval = 400 + 200*level; // ms
         int tickBaseline = 0;                    // ms
         int gravityCount = 0;
         bool lock = false;
+        bool play = true;
 
-        int shapeNumber = rngGenerator(0, 6);
-        int orientationNumber = rngGenerator(0, 3);
+        // generate a queue
+        queue q(5);
+        q.generateMax();
+        q.print();
+        std::pair<int, int> pieceInformation = q.popAndGenerate();
 
-        moveCheckRender(stagingGrid, w, &piece1, stagingGrid.size());
+        // Render first piece
+        int shapeNumber = pieceInformation.first;
+        int orientationNumber = pieceInformation.second;
+        piece1 = piece(shapeNumber, orientationNumber, 3, 0);
+        moveCheckRender(stagingGrid, &baseGrid, w, &piece1, stagingGrid.size());
+        
+        // Gravity
         tickBaseline = SDL_GetTicks64() - gravityInterval;
 
         for (int i = 0; i < 100; i++)
         {
-
             while (!lock)
             {
                 // Quit the programme
@@ -106,35 +93,41 @@ int main()
                     exit(0);
                 }
 
+                // Pause/Play the game
+                if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_p)
+                {
+                    play = !play;
+                }
+
                 // Check gravity
-                if (SDL_GetTicks64() - tickBaseline >= gravityInterval)
+                if (play && SDL_GetTicks64() - tickBaseline >= gravityInterval)
                 {
                     tickBaseline = SDL_GetTicks64();
                     stagingGrid = baseGrid;
-                    lock = moveCheckLockRender(stagingGrid, &baseGrid, w, &piece1, stagingGrid.size(), 0, 1);
+                    lock = moveCheckRender(stagingGrid, &baseGrid, w, &piece1, stagingGrid.size(), 0, 1, false, true);
                 }
 
                 // Check keyboard input
-                if (event.type == SDL_KEYDOWN)
+                if (play && event.type == SDL_KEYDOWN)
                 {
                     switch (event.key.keysym.sym)
                     {
                     case SDLK_LEFT:
                         stagingGrid = baseGrid;
-                        moveCheckRender(stagingGrid, w, &piece1, stagingGrid.size(), -1, 0);
+                        moveCheckRender(stagingGrid, &baseGrid, w, &piece1, stagingGrid.size(), -1, 0);
                         break;
                     case SDLK_RIGHT:
                         stagingGrid = baseGrid;
-                        moveCheckRender(stagingGrid, w, &piece1, stagingGrid.size(), 1, 0);
+                        moveCheckRender(stagingGrid,&baseGrid, w, &piece1, stagingGrid.size(), 1, 0);
                         break;
                     case SDLK_DOWN:
                         stagingGrid = baseGrid;
-                        moveCheckRender(stagingGrid, w, &piece1, stagingGrid.size(), 0, 1);
+                        moveCheckRender(stagingGrid,&baseGrid, w, &piece1, stagingGrid.size(), 0, 1);
                         break;
                     case SDLK_UP:
                         piece1.rotate();
                         stagingGrid = baseGrid;
-                        moveCheckRender(stagingGrid, w, &piece1, stagingGrid.size(), 0, 0, true);
+                        moveCheckRender(stagingGrid, &baseGrid,w, &piece1, stagingGrid.size(), 0, 0, true);
                         break;
                     default:
                         break;
@@ -155,18 +148,22 @@ int main()
             w.print_score();
 
             // generate next Shape
-            shapeNumber = rngGenerator(0, 6);
-            orientationNumber = rngGenerator(0, 3);
+            pieceInformation = q.popAndGenerate();
+            shapeNumber = pieceInformation.first;
+            orientationNumber = pieceInformation.second;
             piece1 = piece(shapeNumber, orientationNumber, 3, 0);
         }
+
         time = std::chrono::system_clock::now();
         std::chrono::duration<double> lvl_time = time - time_last_lvl;
+
         if (lvl_time.count() > 5)
         {
             level++;
         }
+
         exit(0);
         std::cout << "level " << level << std::endl;
     }
-    TTF_Quit();
+    // TTF_Quit();
 }
