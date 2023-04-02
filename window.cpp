@@ -3,6 +3,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <tuple>
+#include "queue.cpp"
+#include "piece.hpp"
 
 class window
 {
@@ -12,7 +14,7 @@ private:
     SDL_Renderer *renderer;
     SDL_Texture *commitBuffer;
     SDL_Texture *stagingBuffer;
-    TTF_Font *score_font;
+    // TTF_Font *score_font;
 
     SDL_Surface *score_surf;
     SDL_Color score_color;
@@ -22,7 +24,7 @@ private:
     int width;
     int height;
     int squareSize;
-    int score;
+    int score = 0;
 
 public:
     window(int x_pos, int y_pos, int width, int height)
@@ -33,11 +35,10 @@ public:
         this->commitBuffer = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, width, height);
         this->stagingBuffer = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, width, height);
         this->score_color = {255, 100, 70};
-        this->score_font = TTF_OpenFont("font/OpenSans-ExtraBold.ttf", 10);
+        // this->score_font = TTF_OpenFont("font/OpenSans-ExtraBold.ttf", 10);
         this->width = width;
         this->height = height;
         this->squareSize = 30;
-        this->score = 0;
     }
 
     void render()
@@ -54,15 +55,20 @@ public:
         drawRectangle(0, 0, this->width, this->height, std::make_tuple(0, 0, 0, 255));
     }
 
-    void drawLine(int x1, int y1, int x2, int y2)
+    void drawLine(int x1, int y1, int x2, int y2, std::tuple<int, int, int, int> colour = std::make_tuple(0, 0, 0, 255))
     {
         // Set the colour of the line
-        SDL_SetRenderDrawColor(this->renderer, 0, 0, 0, 255);
+        SDL_SetRenderDrawColor(this->renderer, std::get<0>(colour), std::get<1>(colour), std::get<2>(colour), std::get<3>(colour));
 
         // Draw a line
         SDL_SetRenderTarget(renderer, this->stagingBuffer);
         SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
         SDL_SetRenderTarget(renderer, NULL);
+    }
+
+    void drawLine(int x1, int y1, int x2, int y2, int r, int g, int b, int a = 255)
+    {
+        drawLine(x1, y1, x2, y2, std::make_tuple(r, g, b, a));
     }
 
     void drawRectangle(int x_pos, int y_pos, int rec_width, int rec_height, std::tuple<int, int, int, int> colour = std::make_tuple(100, 100, 100, 255))
@@ -83,6 +89,11 @@ public:
         SDL_RenderDrawRect(renderer, &incomingPieceRect);
         SDL_RenderFillRect(renderer, &incomingPieceRect);
         SDL_SetRenderTarget(renderer, NULL);
+    }
+
+    void drawRectangle(int x_pos, int y_pos, int rec_width, int rec_height, int r, int g, int b, int a = 255)
+    {
+        drawRectangle(x_pos, y_pos, rec_width, rec_height, std::make_tuple(r, g, b, a));
     }
 
     friend class gameWindow;
@@ -110,8 +121,76 @@ public:
         }
     }
 
+    void renderQueue(queue q)
+    {
+        drawLine(600, 0, 600, 900, 100, 100, 100, 255);
+
+        // Parameters for drawing the queue
+        int size = 25;
+        int startPosX = 650;
+        int startPosY = 20;
+
+        int **pieceArray;
+
+        for (int k = 0; k < q.size(); k++)
+        {
+            // load piece information from the queue
+            std::pair<int, int> currentPiece = q.peek(k);
+            int shapeNumber = currentPiece.first;
+            ;
+            int orientation = currentPiece.second;
+
+            // load piece data from piece.hpp
+            // define a new 4x4 int array
+
+            // load piece data from piece.hpp
+            pieceArray = new int *[4];
+            for (int i = 0; i < 4; i++)
+            {
+                pieceArray[i] = new int[4];
+                for (int j = 0; j < 4; j++)
+                {
+                    pieceArray[i][j] = pieceData[shapeNumber][orientation][i][j];
+                }
+            }
+
+            // grab colour of rectangles
+            std::tuple<int, int, int, int> colour;
+
+            // draw piece
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    colour = pieceColour(shapeNumber + 1);
+                    if (pieceArray[j][i] != 0)
+                    {
+                        drawRectangle(startPosX + i * size, startPosY + j * size, size, size, colour);
+                    }
+                    else
+                    {
+                        drawRectangle(startPosX + i * size, startPosY + j * size, size, size, 20, 20, 20, 255);
+                    }
+                }
+            }
+
+            // draw gridLines
+            for (int i = 1; i < 4; i++)
+            {
+                drawLine(startPosX + i * size, startPosY, startPosX + i * size, startPosY + 4 * size, 0, 0, 0, 255);
+            }
+            for (int j = 1; j < 4; j++)
+            {
+                drawLine(startPosX, startPosY + j * size, startPosX + 4 * size, startPosY + j * size, 0, 0, 0, 255);
+            }
+
+            startPosY += 6 * size;
+        }
+    }
+
     void increment_score(int val) { this->score += val; }
     int get_score() const { return this->score; }
+
     void renderGrid(int **gridArray, std::pair<int, int> boardSize)
     {
         // determine the size of the grid
@@ -134,11 +213,11 @@ public:
             }
         }
     }
-    void renderScore()
-    {
-        score_surf = TTF_RenderUTF8_Blended(score_font, "Score : " + char(score), score_color);
-        score_texture = SDL_CreateTextureFromSurface(renderer, score_surf);
-        score_loc = {100, 100, 500, 500};
-        SDL_RenderCopy(renderer, score_texture, &score_loc, &score_loc);
-    }
+    // void renderScore()
+    // {
+    //     score_surf = TTF_RenderUTF8_Blended(score_font, "Score : " + char(score), score_color);
+    //     score_texture = SDL_CreateTextureFromSurface(renderer, score_surf);
+    //     score_loc = {100, 100, 500, 500};
+    //     SDL_RenderCopy(renderer, score_texture, &score_loc, &score_loc);
+    // }
 };
