@@ -13,7 +13,7 @@ class piece
         int **pieceArray;
 
     public:
-            piece(int shapeNumber = 0, int orientation = 0, int x_pos = 0, int y_pos = 0)
+            piece(int shapeNumber = 0, int orientation = 0, int x_pos = 3, int y_pos = -1)
             {
                 this->shapeNumber = shapeNumber;
                 this->orientation = orientation;

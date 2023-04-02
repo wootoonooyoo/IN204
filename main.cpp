@@ -4,10 +4,9 @@
 #include "grid.cpp"
 #include "piece.hpp"
 #include "window.cpp"
-#include "queue.cpp"
 #include <chrono>
 
-bool moveCheckRender(gameGrid stagingGrid, gameGrid *baseGrid, gameWindow w, piece *piece1, std::pair<int, int> boardSize, int x_change = 0, int y_change = 0, bool isRotation = false, bool isGravityTriggered = false)
+bool moveCheckRender(gameGrid stagingGrid, gameGrid *baseGrid, gameWindow w, piece *piece1, std::pair<int, int> boardSize, queue q, int x_change = 0, int y_change = 0, bool isRotation = false, bool isGravityTriggered = false)
 {
     // Move
     piece1->move(x_change, y_change);
@@ -35,6 +34,7 @@ bool moveCheckRender(gameGrid stagingGrid, gameGrid *baseGrid, gameWindow w, pie
     stagingGrid.updateWithPiece(*piece1);
     w.renderGrid(stagingGrid.array(), boardSize); // base layer which contains the wall and pieces
     w.drawGrid(stagingGrid.size());               // grid for aesthetic reasons
+    w.renderQueue(q);                               // queue
     w.render();                                   // render the window
     
     // Prepare next iteration
@@ -43,8 +43,6 @@ bool moveCheckRender(gameGrid stagingGrid, gameGrid *baseGrid, gameWindow w, pie
 
     return false;
 }
-
-
 
 int main()
 {
@@ -58,7 +56,7 @@ int main()
         SDL_Event event;
         gameGrid stagingGrid(10, 20, 4);
         gameGrid baseGrid(10, 20, 4);
-        piece piece1(3, 3, 1, 0);
+        piece piece1(3, 3);
         gameWindow w(100, 100, 900, 900);
         std::pair<int, int> coords{6, 0};
         int level = 1;
@@ -69,16 +67,15 @@ int main()
         bool play = true;
 
         // generate a queue
-        queue q(5);
+        queue q(3);
         q.generateMax();
-        q.print();
         std::pair<int, int> pieceInformation = q.popAndGenerate();
 
         // Render first piece
         int shapeNumber = pieceInformation.first;
         int orientationNumber = pieceInformation.second;
-        piece1 = piece(shapeNumber, orientationNumber, 3, 0);
-        moveCheckRender(stagingGrid, &baseGrid, w, &piece1, stagingGrid.size());
+        piece1 = piece(shapeNumber, orientationNumber);
+        moveCheckRender(stagingGrid, &baseGrid, w, &piece1, stagingGrid.size(), q);
         
         // Gravity
         tickBaseline = SDL_GetTicks64() - gravityInterval;
@@ -104,7 +101,7 @@ int main()
                 {
                     tickBaseline = SDL_GetTicks64();
                     stagingGrid = baseGrid;
-                    lock = moveCheckRender(stagingGrid, &baseGrid, w, &piece1, stagingGrid.size(), 0, 1, false, true);
+                    lock = moveCheckRender(stagingGrid, &baseGrid, w, &piece1, stagingGrid.size(),q, 0, 1, false, true);
                 }
 
                 // Check keyboard input
@@ -114,20 +111,20 @@ int main()
                     {
                     case SDLK_LEFT:
                         stagingGrid = baseGrid;
-                        moveCheckRender(stagingGrid, &baseGrid, w, &piece1, stagingGrid.size(), -1, 0);
+                        moveCheckRender(stagingGrid, &baseGrid, w, &piece1, stagingGrid.size(), q, -1, 0);
                         break;
                     case SDLK_RIGHT:
                         stagingGrid = baseGrid;
-                        moveCheckRender(stagingGrid,&baseGrid, w, &piece1, stagingGrid.size(), 1, 0);
+                        moveCheckRender(stagingGrid,&baseGrid, w, &piece1, stagingGrid.size(), q, 1, 0);
                         break;
                     case SDLK_DOWN:
                         stagingGrid = baseGrid;
-                        moveCheckRender(stagingGrid,&baseGrid, w, &piece1, stagingGrid.size(), 0, 1);
+                        moveCheckRender(stagingGrid,&baseGrid, w, &piece1, stagingGrid.size(), q, 0, 1);
                         break;
                     case SDLK_UP:
                         piece1.rotate();
                         stagingGrid = baseGrid;
-                        moveCheckRender(stagingGrid, &baseGrid,w, &piece1, stagingGrid.size(), 0, 0, true);
+                        moveCheckRender(stagingGrid, &baseGrid,w, &piece1, stagingGrid.size(), q, 0, 0, true);
                         break;
                     default:
                         break;
@@ -151,7 +148,7 @@ int main()
             pieceInformation = q.popAndGenerate();
             shapeNumber = pieceInformation.first;
             orientationNumber = pieceInformation.second;
-            piece1 = piece(shapeNumber, orientationNumber, 3, 0);
+            piece1 = piece(shapeNumber, orientationNumber);
         }
 
         time = std::chrono::system_clock::now();
