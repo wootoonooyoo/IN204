@@ -291,10 +291,9 @@ public:
     }
 
     // Line Clearance
-    int clearLines()
+    void clearLines(int *linesClearedp)
     {
         int count = 0;
-        int linesCleared = 0;
 
         // Check through each line
         for (int j = gridHeight - padding - 1; j >= padding; j--)
@@ -304,20 +303,19 @@ public:
                 if (gridArray[i][j] != 0)
                 {
                     count++;
-                    linesCleared++;
                 }
             }
 
             // hit the top of the all the blocks
             if (count == 0)
             {
-                return 0;
+                return;
             }
 
             // If the line is full, clear it
             if (count == gridWidth - 2 * padding)
             {
-                linesCleared++;
+                *linesClearedp = *linesClearedp + 1;
                 for (int i = padding; i < gridWidth - padding; i++)
                 {
                     gridArray[i][j] = 0;
@@ -326,7 +324,6 @@ public:
 
             count = 0;
         }
-        return linesCleared;
     }
 
     // Move Line Down

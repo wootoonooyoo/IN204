@@ -198,23 +198,34 @@ int main()
             lock = false;
 
             // check if there are any lines to clear
-            linescleared = baseGrid.clearLines();
+            baseGrid.clearLines(&linescleared);
             baseGrid.moveAllLinesDown();
-            std::cout << linescleared << std::endl;
-            switch (linescleared)
+            if (linescleared == 4)
             {
-            case 1:
-                std::cout << "1 ligne supprimée !" << std::endl;
-                w.increment_score(40);
-            case 2:
-                std::cout << "2 lignes supprimées !" << std::endl;
-                w.increment_score(100);
-            case 3:
-                std::cout << "3 lignes supprimées !" << std::endl;
-                w.increment_score(300);
-            case 4:
+
                 std::cout << "4 lignes supprimées ! Tetris :" << std::endl;
                 w.increment_score(1200);
+                std::cout << "Score : " << w.get_score() << std::endl;
+            }
+            if (linescleared == 3)
+            {
+
+                std::cout << "3 lignes supprimées !" << std::endl;
+                w.increment_score(300);
+                std::cout << "Score : " << w.get_score() << std::endl;
+            }
+            if (linescleared == 2)
+            {
+                std::cout << "2 lignes supprimées !" << std::endl;
+                w.increment_score(100);
+                std::cout << "Score : " << w.get_score() << std::endl;
+            }
+            if (linescleared == 1)
+            {
+
+                std::cout << "1 ligne supprimée !" << std::endl;
+                w.increment_score(40);
+                std::cout << "Score : " << w.get_score() << std::endl;
             }
             linescleared = 0;
 
