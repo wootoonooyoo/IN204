@@ -36,6 +36,7 @@ bool moveCheckRender(gameGrid stagingGrid, gameGrid *baseGrid, gameWindow w, pie
     w.renderGrid(stagingGrid.array(), boardSize, stagingGrid.boardPadding()); // base layer which contains the wall and pieces
     w.drawGrid(stagingGrid.size());               // grid for aesthetic reasons
     w.renderQueue(q);                             // queue
+    w.renderScore();
     w.render();                                   // render the window
 
     // Prepare next iteration
@@ -46,7 +47,6 @@ bool moveCheckRender(gameGrid stagingGrid, gameGrid *baseGrid, gameWindow w, pie
 }
 int main()
 {
-    std::cout << "testV2" << std::endl;
 
     auto time_last_lvl = std::chrono::system_clock::now();
     auto time = std::chrono::system_clock::now();
@@ -100,7 +100,7 @@ int main()
         // Play/pause feature
         bool play = false;
 
-        for (int i = 0; i < 100; i++)
+        while (true)
         {
 
             while (!lock)

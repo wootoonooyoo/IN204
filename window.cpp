@@ -96,6 +96,31 @@ public:
         drawRectangle(x_pos, y_pos, rec_width, rec_height, std::make_tuple(r, g, b, a));
     }
 
+    void drawImage(int x_pos, int y_pos, int rec_width, int rec_height, const char* path)
+    {
+        // Load the image
+        SDL_Surface *image = SDL_LoadBMP(path);
+
+        // Create a texture from the image
+        SDL_Texture *imageTexture = SDL_CreateTextureFromSurface(renderer, image);
+
+        // Draw the texture
+        SDL_Rect imageRect;
+
+        imageRect.w = rec_width;
+        imageRect.h = rec_height;
+        imageRect.x = x_pos;
+        imageRect.y = y_pos;
+
+        SDL_SetRenderTarget(renderer, this->stagingBuffer);
+        SDL_RenderCopy(renderer, imageTexture, NULL, &imageRect);
+        SDL_SetRenderTarget(renderer, NULL);
+
+        // Free the image
+        SDL_FreeSurface(image);
+        SDL_DestroyTexture(imageTexture);
+    }
+
     friend class gameWindow;
 };
 
@@ -123,12 +148,13 @@ public:
 
     void renderQueue(queue q)
     {
+
         drawLine(600, 0, 600, 900, 100, 100, 100, 255);
 
         // Parameters for drawing the queue
-        int size = 25;
-        int startPosX = 650;
-        int startPosY = 20;
+        int size = 30;
+        int startPosX = 670;
+        int startPosY = 150;
 
         int **pieceArray;
         int count = 0;
@@ -190,6 +216,25 @@ public:
             startingIndex ++;
             startingIndex %= q.size();
         }
+    }
+
+    void renderScore()
+    {
+        
+        // decompose into individual digits
+        int digit[5];
+        for (int i = 4; i >= 0; i--)
+        {
+            digit[i] = score % 10;
+            score /= 10;
+        }
+    
+        for(int i=0; i<5; i++)
+        {
+            std::string pathName = "numbers/" + std::to_string(digit[i]) + ".bmp";
+            drawImage(630 + 39 * i, 50, 39, 50, pathName.c_str());
+        }
+
     }
 
     void increment_score(int val) { this->score += val; }
