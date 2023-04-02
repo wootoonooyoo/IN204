@@ -22,7 +22,7 @@ private:
     int width;
     int height;
     int squareSize;
-    int score = 0;
+    int score;
 
 public:
     window(int x_pos, int y_pos, int width, int height)
@@ -37,6 +37,7 @@ public:
         this->width = width;
         this->height = height;
         this->squareSize = 30;
+        this->score = 0;
     }
 
     void render()
@@ -110,7 +111,7 @@ public:
     }
 
     void increment_score(int val) { this->score += val; }
-    void print_score() const { std::cout << this->score << std::endl; }
+    int get_score() const { return this->score; }
     void renderGrid(int **gridArray, std::pair<int, int> boardSize)
     {
         // determine the size of the grid

@@ -96,6 +96,7 @@ int main()
         int gravityCount = 0;
         bool lock = false;
         int linescleared = 0;
+        bool gameOver = false;
 
         int shapeNumber = rngGenerator(0, 6);
         int orientationNumber = rngGenerator(0, 3);
@@ -123,6 +124,8 @@ int main()
                     if (!play)
                         std::cout << "Jeu repris, appuyez sur s pour mettre en pause" << std::endl;
                     play = true;
+                    if (!gameOver)
+                        gameOver = false;
                 }
 
                 if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_s)
@@ -133,7 +136,7 @@ int main()
                 }
 
                 // Check gravity
-                if (play && (SDL_GetTicks64() - tickBaseline >= gravityInterval))
+                if (!gameOver && play && (SDL_GetTicks64() - tickBaseline >= gravityInterval))
                 {
                     tickBaseline = SDL_GetTicks64();
                     stagingGrid = baseGrid;
@@ -141,7 +144,7 @@ int main()
                 }
 
                 // Check keyboard input
-                if (play && event.type == SDL_KEYDOWN)
+                if (!gameOver && play && event.type == SDL_KEYDOWN)
                 {
                     switch (event.key.keysym.sym)
                     {
@@ -205,6 +208,15 @@ int main()
                 w.increment_score(1200);
             }
             linescleared = 0;
+
+            // Game Over check
+            if (!baseGrid.checkRowIsZero(20))
+            {
+                std::cout << "Game Over ! Score : " << w.get_score() << std::endl
+                          << "Appuyez sur p pour relancer !" << std::endl;
+                gameOver = true;
+            }
+
             // generate next Shape
             shapeNumber = rngGenerator(0, 6);
             orientationNumber = rngGenerator(0, 3);
