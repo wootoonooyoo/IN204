@@ -58,6 +58,11 @@ public:
         return std::make_pair(gridWidth, gridHeight);
     }
 
+    int boardPadding()
+    {
+        return this->padding;
+    }
+
     // Update Methods
     void update(int x, int y, int value)
     {

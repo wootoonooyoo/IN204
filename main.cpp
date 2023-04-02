@@ -32,7 +32,7 @@ bool moveCheckRender(gameGrid stagingGrid, gameGrid *baseGrid, gameWindow w, pie
 
     // Render
     stagingGrid.updateWithPiece(*piece1);
-    w.renderGrid(stagingGrid.array(), boardSize); // base layer which contains the wall and pieces
+    w.renderGrid(stagingGrid.array(), boardSize, stagingGrid.boardPadding()); // base layer which contains the wall and pieces
     w.drawGrid(stagingGrid.size());               // grid for aesthetic reasons
     w.renderQueue(q);                               // queue
     w.render();                                   // render the window

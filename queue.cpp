@@ -1,13 +1,15 @@
 // We want to create a class for a queue of size n and call member functions such as push, pop, see all.
 // 
 #include <iostream>
+#include <random>
+
 
 int rngGenerator(int min = 0, int max = 6)
 {
     std::random_device rd;
-    std::mt19937 rng(rd());
-    std::uniform_int_distribution<int> uni(min, max);
-    return uni(rng);
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(min, max);
+    return distrib(gen); 
 }
 
 class queue {
@@ -31,6 +33,7 @@ class queue {
             this->queueHead.second = 0;
             this->queueTail.first = 0;
             this->queueTail.second = 0;
+
         }
 
         // Fundamental Queue Methods
@@ -58,34 +61,6 @@ class queue {
             return std::pair<int,int>{-1,-1};
         }
 
-        // Queue arrangement
-        // Always push head to the front
-        void rearrange()
-        {
-            std::pair<int,int> *tempArray = new std::pair<int,int>[queueSize];
-            int tempIndex = 0;
-
-            for (int i = queueHead.first; i < queueSize; i++)
-            {
-                tempArray[tempIndex].first = queueArray[i].first;
-                tempArray[tempIndex].second = queueArray[i].second;
-                tempIndex++;
-            }
-
-            for (int i = 0; i < queueHead.first; i++)
-            {
-                tempArray[tempIndex].first = queueArray[i].first;
-                tempArray[tempIndex].second = queueArray[i].second;
-                tempIndex++;
-            }
-
-            queueHead.first = 0;
-            queueTail.first = queueLength;
-
-            delete[] queueArray;
-            queueArray = tempArray;
-        }
-
         // Tetris Methods     
         std::pair<int,int> generate()
         {
@@ -104,7 +79,6 @@ class queue {
         {
             std::pair<int,int> pieceInfo = pop();
             push(generate());
-            rearrange();
             return pieceInfo;
         }
 
@@ -128,6 +102,11 @@ class queue {
         {
             return queueSize;
         }        
+
+        int head()
+        {
+            return queueHead.first;
+        }
 
         // Print Methods
         void print()

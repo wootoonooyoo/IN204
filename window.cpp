@@ -96,6 +96,37 @@ public:
         drawRectangle(x_pos, y_pos, rec_width, rec_height, std::make_tuple(r, g, b, a));
     }
 
+    void drawImage(int x_pos, int y_pos, int width, int height, std::string path)
+    {
+        // Load the image
+        SDL_Surface *image = SDL_LoadBMP("math.bmp");
+
+        /* Let the user know if the file failed to load */
+        if (!image) 
+        {
+            printf("Failed to load image");
+            return;
+        }
+
+        // Create a texture from the image
+        SDL_Texture *imageTexture = SDL_CreateTextureFromSurface(renderer, image);
+
+        // Draw the texture
+        SDL_Rect imageRect;
+        imageRect.x = 620;
+        imageRect.y = 50;
+        imageRect.w = 240;
+        imageRect.h = 100;
+
+        SDL_SetRenderTarget(renderer, this->stagingBuffer);
+        SDL_RenderCopy(renderer, imageTexture, NULL, &imageRect);
+        SDL_SetRenderTarget(renderer, NULL);
+
+        // Free the image
+        SDL_FreeSurface(image);
+        SDL_DestroyTexture(imageTexture);
+    }
+
     friend class gameWindow;
 };
 
@@ -128,15 +159,16 @@ public:
         // Parameters for drawing the queue
         int size = 25;
         int startPosX = 650;
-        int startPosY = 20;
+        int startPosY = 200;
 
         int **pieceArray;
+        int count = 0;
+        int startingIndex = q.head();
 
-
-        for (int k=0;k<q.size();k++)
+        while(count < q.size())
         {
             // load piece information from the queue
-            std::pair<int,int> currentPiece = q.peek(k);
+            std::pair<int,int> currentPiece = q.peek(startingIndex);
             int shapeNumber = currentPiece.first;;
             int orientation = currentPiece.second;
 
@@ -184,25 +216,31 @@ public:
             }
 
             startPosY += 6*size;
-
+            count++;
+            startingIndex++;
+            startingIndex %= q.size();
         }
         
+        // draw image
+        drawImage(900,0,300,900,"math.bmp");
+
     }
+
 
 
     void increment_score(int val) { this->score += val; }
     void print_score() const { std::cout << this->score << std::endl; }
 
-    void renderGrid(int **gridArray, std::pair<int, int> boardSize)
+    void renderGrid(int **gridArray, std::pair<int, int> boardSize, int padding)
     {
         // determine the size of the grid
         int gridWidth = boardSize.first;
         int gridHeight = boardSize.second;
 
         // render grid
-        for (int i = 0; i < gridWidth; i++)
+        for (int i = (padding - 1); i < gridWidth - (padding - 1); i++)
         {
-            for (int j = 0; j < gridHeight; j++)
+            for (int j = (padding - 1); j < gridHeight - (padding - 1); j++)
             {
                 if (gridArray[i][j] != 0)
                 {
