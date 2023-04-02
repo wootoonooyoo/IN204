@@ -46,7 +46,7 @@ bool moveCheckRender(gameGrid stagingGrid, gameGrid *baseGrid, gameWindow w, pie
 }
 int main()
 {
-    std::cout << "test" << std::endl;
+    std::cout << "testV2" << std::endl;
 
     auto time_last_lvl = std::chrono::system_clock::now();
     auto time = std::chrono::system_clock::now();
